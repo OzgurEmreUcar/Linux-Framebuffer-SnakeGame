@@ -7,6 +7,7 @@
 #include <unistd.h> // Defines constants and types related to system calls such as file handling and process control.
 #include <string.h> // Contains string manipulation functions.
 #include <termios.h>
+#include <stdbool.h>
 
 #define BLOCK_SIZE 20 // Defines the width of the rectangle to be drawn.
 #define BLOCK_OFFSET 30
@@ -19,58 +20,29 @@ struct fb_fix_screeninfo finfo; // Structure to store fixed screen information (
 long screensize;
 struct Point {int x,y;};
 struct termios orig_termios;
+struct Point *snake;
+struct Point food;
+int dx = -BLOCK_SIZE, dy = 0;
+char input;
 
 int initialize_fb();
-void draw_block();
+void draw_block(int x,int y,int color,int sblock_id);
 void release_resources();
 void enable_raw_mode();
 void reset_terminal();
 void render_framebuffer();
+int initialize_snake_food();
+void game_routine();
+bool check_input();
+void draw_snake();
+void check_food_collision();
+
 int main()
 {
     initialize_fb();
     enable_raw_mode();
-    struct Point *snake = malloc(snake_length*sizeof(struct Point));
-    for(int i =0;i<snake_length;i++)
-    {
-        snake[i].x = (vinfo.xres / 2) + i * BLOCK_SIZE;
-        snake[i].y = vinfo.yres / 2;
-    }
-    struct Point food = { .x = (vinfo.xres / 4), .y = (vinfo.yres / 4) };
-    int dx = -BLOCK_SIZE, dy = 0;
-    char input;
-
-    while(1)
-    {
-        memset(framebuffer_data, 0, finfo.line_length * vinfo.yres);
-        draw_block(food.x, food.y, 0x00FF00,0);
-        for (int i = 0; i < snake_length; i++) {
-            draw_block(snake[i].x, snake[i].y, 0xFF0000,i);
-        }
-        for (int i = snake_length - 1; i > 0; i--) {
-            snake[i] = snake[i - 1];
-        }
-        snake[0].x += dx;
-        snake[0].y += dy;
-        
-        if (snake[0].x < food.x + BLOCK_SIZE && snake[0].x + BLOCK_SIZE > food.x && snake[0].y < food.y + BLOCK_SIZE && snake[0].y + BLOCK_SIZE > food.y) {
-            food.x = (rand() % (vinfo.xres / BLOCK_SIZE)) * BLOCK_SIZE;
-            food.y = (rand() % (vinfo.yres / BLOCK_SIZE)) * BLOCK_SIZE;
-            snake_length++;
-            snake = realloc(snake, snake_length * sizeof(struct Point));
-            snake[snake_length - 1] = snake[snake_length - 2];
-        }
-        render_framebuffer();
-        if (read(STDIN_FILENO, &input, 1) == 1) {
-            if (input == 'q') break;
-            if (input == 'w' && dy == 0) { dx = 0; dy = -BLOCK_SIZE; }
-            if (input == 's' && dy == 0) { dx = 0; dy = BLOCK_SIZE; }
-            if (input == 'a' && dx == 0) { dx = -BLOCK_SIZE; dy = 0; }
-            if (input == 'd' && dx == 0) { dx = BLOCK_SIZE; dy = 0; }
-        }
-
-    }
-    free(snake);
+    initialize_snake_food();
+    game_routine();
     release_resources();
     return 0;
 }
@@ -114,6 +86,69 @@ int initialize_fb()
     snake_start_Y = center_y - BLOCK_SIZE / 2; // Top-left corner of the rectangle (Y-coordinate).
 }
 
+int initialize_snake_food()
+{
+    snake = malloc(snake_length*sizeof(struct Point));
+    for(int i =0;i<snake_length;i++)
+    {
+        snake[i].x = (vinfo.xres / 2) + i * BLOCK_SIZE;
+        snake[i].y = vinfo.yres / 2;
+    }
+    food.x = (vinfo.xres / 4);
+    food.y = (vinfo.yres / 4);
+    dx = -BLOCK_SIZE;
+    dy = 0;
+}
+
+void game_routine()
+{
+    while(1)
+    {
+        memset(framebuffer_data, 0, finfo.line_length * vinfo.yres);
+        draw_block(food.x, food.y, 0x00FF00,0);
+        draw_snake();
+        check_food_collision();
+        render_framebuffer();
+        if(!check_input()) break;
+
+    }
+}
+
+bool check_input(){
+    if (read(STDIN_FILENO, &input, 1) == 1) {
+        if (input == 'q') return false;
+        if (input == 'w' && dy == 0) { dx = 0; dy = -BLOCK_SIZE; }
+        if (input == 's' && dy == 0) { dx = 0; dy = BLOCK_SIZE; }
+        if (input == 'a' && dx == 0) { dx = -BLOCK_SIZE; dy = 0; }
+        if (input == 'd' && dx == 0) { dx = BLOCK_SIZE; dy = 0; }
+    }
+    return true;
+}
+
+void draw_snake()
+{
+    for (int i = 0; i < snake_length; i++) {
+        draw_block(snake[i].x, snake[i].y, 0xFF0000,i);
+    }
+    for (int i = snake_length - 1; i > 0; i--) {
+        snake[i] = snake[i - 1];
+    }
+    snake[0].x += dx;
+    snake[0].y += dy;
+}
+
+void check_food_collision()
+{
+    if (snake[0].x < food.x + BLOCK_SIZE && snake[0].x + BLOCK_SIZE > food.x && snake[0].y < food.y + BLOCK_SIZE && snake[0].y + BLOCK_SIZE > food.y) 
+    {
+        food.x = (rand() % (vinfo.xres / BLOCK_SIZE)) * BLOCK_SIZE;
+        food.y = (rand() % (vinfo.yres / BLOCK_SIZE)) * BLOCK_SIZE;
+        snake_length++;
+        snake = realloc(snake, snake_length * sizeof(struct Point));
+        snake[snake_length - 1] = snake[snake_length - 2];
+    }
+}
+
 void draw_block(int x,int y,int color,int sblock_id)
 {
     for(int i = 0;i<BLOCK_SIZE;i++)
@@ -137,7 +172,8 @@ void draw_block(int x,int y,int color,int sblock_id)
 }
 
 void release_resources()
-{
+{    
+    free(snake);
     munmap(framebuffer_data, screensize); // Unmap the framebuffer memory.
     close(framebuffer_fd); // Close the framebuffer device.
 }
@@ -158,3 +194,4 @@ void render_framebuffer() {
     size_t screensize = finfo.line_length * vinfo.yres;
     pwrite(framebuffer_fd, framebuffer_data, screensize, 0);
 }
+
