@@ -13,7 +13,8 @@ Welcome to the Linux Framebuffer Snake Game! This project offers a fun way to ex
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 - [Usage](#usage)
-
+- [Important Notes](#important-notes)
+- 
 ## About the Project
 
 The Linux Framebuffer Snake Game is an educational project demonstrating how to use the Linux framebuffer for graphics rendering. It runs entirely in the terminal, bypassing the need for a GUI. The game showcases essential framebuffer operations, including drawing pixels, updating screens, and handling user input.
@@ -70,6 +71,18 @@ Ensure you have the following installed on your system:
 
 ## Usage
 
-After building the project, run the game with the following command:  
-```bash
-sudo ./snake_game
+After building the project, run the game with the following command:
+  ```bash
+  sudo ./snake_game
+Controls:
+  Arrow keys: Move the snake up, down, left, or right.
+  Q: Quit the game.
+---
+### Important Notes:
+ 
+  Superuser privileges are required to access the framebuffer device. This is why the sudo command is necessary.
+  To run the game, you need direct access to the Linux framebuffer. This means disabling window management services such as GNOME, X11, or Wayland.
+  The easiest way to do this is to switch to a virtual terminal (TTY) by pressing Ctrl + Alt + F2 (or F3, F4, etc.).
+  Log in to the terminal, navigate to the project directory, and run the game.
+  Ensure your system has a functioning framebuffer device, typically located at /dev/fb0. If this device is unavailable or inaccessible, the game will not run.
+  To return to your graphical interface after playing, press Ctrl + Alt + F1 (or F7, depending on your system).
