@@ -66,8 +66,6 @@ Ensure you have the following installed on your system:
 3. **Build the project**:
    ```bash
    make
-
-
 ---
 
 ## Usage
@@ -75,7 +73,3 @@ Ensure you have the following installed on your system:
 After building the project, run the game with the following command:  
 ```bash
 sudo ./snake_game
-
-
-
-
