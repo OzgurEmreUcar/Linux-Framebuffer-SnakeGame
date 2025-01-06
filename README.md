@@ -74,10 +74,11 @@ Ensure you have the following installed on your system:
 1. **After building the project, run the game with the following command:**
    ```bash
    sudo ./snake_game
-2. Controls:
-  Arrow keys: Move the snake up, down, left, or right.
+2. **Controls:**
+  W,A,S,D: Move the snake up, down, left, or right.
   Q: Quit the game.
 ---
+
 ### Important Notes:
  
   Superuser privileges are required to access the framebuffer device. This is why the sudo command is necessary.
