@@ -14,7 +14,7 @@ Welcome to the Linux Framebuffer Snake Game! This project offers a fun way to ex
   - [Installation](#installation)
 - [Usage](#usage)
 - [Important Notes](#important-notes)
-- 
+
 ## About the Project
 
 The Linux Framebuffer Snake Game is an educational project demonstrating how to use the Linux framebuffer for graphics rendering. It runs entirely in the terminal, bypassing the need for a GUI. The game showcases essential framebuffer operations, including drawing pixels, updating screens, and handling user input.
