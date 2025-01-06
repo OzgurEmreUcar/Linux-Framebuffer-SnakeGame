@@ -71,10 +71,10 @@ Ensure you have the following installed on your system:
 
 ## Usage
 
-After building the project, run the game with the following command:
-  ```bash
-  sudo ./snake_game
-Controls:
+1. **After building the project, run the game with the following command:**
+   ```bash
+   sudo ./snake_game
+2. Controls:
   Arrow keys: Move the snake up, down, left, or right.
   Q: Quit the game.
 ---
